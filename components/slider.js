@@ -21,7 +21,6 @@ const app=(props)=>{
     const [toXCircle, setToXCircle]=useState(0);
     const [toYCircle, setToYCircle]=useState(0);
 
-
     const panResponse = useRef(
         PanResponder.create({
         onMoveShouldSetPanResponder: () => true,
@@ -66,7 +65,7 @@ const app=(props)=>{
     },[props.angle])
 
     return(
-        <View style={style.view}>
+        <View style={[style.view,{display:props.display}]}>
             <Svg    
                 width={(radius*2)+25} 
                 height={(radius*2)+25} 

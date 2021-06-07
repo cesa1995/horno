@@ -1,5 +1,5 @@
-import React,{useState} from 'react'
-import {StyleSheet,View, TouchableOpacity, Dimensions,Text, TextInput} from 'react-native'
+import React,{useRef, useState, useEffect} from 'react'
+import {StyleSheet,View, TouchableOpacity, Dimensions,Text, TextInput, Animated} from 'react-native'
 import Termometro from './components/termometro'
 import Bar from './components/bar'
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,6 +16,38 @@ const app=()=>{
   const [date, setDate]=useState(new Date());
   const [temperature, setTemperature]=useState(0);
   const [angle, setAngle]=useState(359*Math.PI/180);
+  const animation=useRef(new Animated.Value(height-(48*height/100))).current;
+  const [display, setDisplay]=useState('flex');
+
+  const animate=()=>{
+    setDisplay('none')
+    if(showTemperatureTypeInput==true){
+      Animated.timing(
+        animation,
+        {
+          toValue:height-(60*height/100),
+          duration:200,
+          useNativeDriver:false
+        }
+      ).start();
+    }else{
+      Animated.timing(
+        animation,
+        {
+          toValue:height-(48*height/100),
+          duration:200,
+          useNativeDriver:false
+        }
+      ).start(
+        (end)=>{
+          if(end){
+            setDisplay('flex');
+          }
+        }
+      );
+    }
+    showTemperatureTypeInput?setShowTemperatureTypeInput(false):setShowTemperatureTypeInput(true);
+  }
 
   return(
     <View style={style.main}>
@@ -58,17 +90,20 @@ const app=()=>{
           !showTime && showTemperature &&(
                 <View style={style.fire}>
                 <View style={style.fireBackground} onStartShouldSetResponder={()=>{setShowTemperature(false)}}/>
-                <View style={showTemperatureTypeInput?style.boxType1:style.boxType2}>
+                <Animated.View style={{
+                  position:'absolute',
+                  height:animation,
+                  width:width-(26*width/100),
+                  marginLeft:(13*width/100),
+                  marginTop:(24*height/100),
+                  backgroundColor:'#ffffff',
+                  borderRadius:2,}
+                }>
                     <View style={style.header}>
                       <Text style={style.temperature}>{`${temperature}`}</Text>
                       <Text style={style.simbol}>°C</Text>
                     </View>
                     <View style={style.elements}>
-                    {
-                      showTemperatureTypeInput && (
-                        <Slider angle={angle} setAngle={setAngle} updateValue={(value)=>{setTemperature(Math.round((value*1000)/(360*Math.PI/180)))}}/>
-                      )
-                    }
                     {
                       !showTemperatureTypeInput&& (
                         <View>
@@ -80,10 +115,16 @@ const app=()=>{
                         </View>
                       )
                     }  
+                    {
+                      
+                      showTemperatureTypeInput && (
+                        <Slider display={display} angle={angle} setAngle={setAngle} updateValue={(value)=>{setTemperature(Math.round((value*1000)/(360*Math.PI/180)))}}/>
+                      )
+                    }
                     </View>                  
                     <View style={style.elementsButton}>
                       <TouchableOpacity onPress={()=>{
-                        showTemperatureTypeInput?setShowTemperatureTypeInput(false):setShowTemperatureTypeInput(true);
+                        animate();   
                       }}>
                         {
                           showTemperatureTypeInput &&(
@@ -106,7 +147,7 @@ const app=()=>{
                         </TouchableOpacity>
                       </View>
                     </View>
-                </View>
+                </Animated.View>
               </View>
         )
         }
@@ -192,24 +233,6 @@ const style=StyleSheet.create(
       height:height,
       elevation:3,
       zIndex:2000,
-    },
-    boxType1:{
-      position:'absolute',
-      height:height-(48*height/100),
-      width:width-(26*width/100),
-      marginLeft:(13*width/100),
-      marginTop:(24*height/100),
-      backgroundColor:'#ffffff',
-      borderRadius:2,
-    },
-    boxType2:{
-      position:'absolute',
-      height:height-(60*height/100),
-      width:width-(26*width/100),
-      marginLeft:(13*width/100),
-      marginTop:(24*height/100),
-      backgroundColor:'#ffffff',
-      borderRadius:2,
     }
   }
 ) 
